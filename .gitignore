@@ -1,0 +1,9 @@
+# MACOS
+*.DS_Store
+
+# Image File
+*.jpg
+*.JPEG
+*.png
+*.gif
+
