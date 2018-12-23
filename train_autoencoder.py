@@ -16,14 +16,25 @@ from dataloader import get_loader
 
 from datetime import datetime
 
+def make_dir(path):
+    try:
+        if not os.path.isdir(path):
+            os.makedirs(os.path.join(path))
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            print("Failed to create directory")
+            raise
+
 def main(config):
     # make directory
     if config.ckpt_folder is None:
+        make_dir("checkpoints")
         config.ckpt_folder = 'checkpoints/' + str(datetime.today().strftime("%Y%m%d%H%M"))+ '_' + str(config.encoder)
     os.system('mkdir {0}'.format(config.ckpt_folder))
     print("[*] Make checkpoints folder!")
 
     if config.sample_folder is None:
+        make_dir("samples")
         config.sample_folder = 'samples/' + str(datetime.today().strftime("%Y%m%d%H%M"))+ '_' + str(config.encoder)
     os.system('mkdir {0}'.format(config.sample_folder))
     print("[*] Make samples folder!")
