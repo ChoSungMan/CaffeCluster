@@ -48,8 +48,10 @@ def main(args):
         net = torch.nn.DataParallel(net)
         cudnn.benchmark = True
     
-    dataiter = iter(test_loader)
+    dataiter = iter(train_loader)
     images, labels = dataiter.next()
+
+	print(image.shape)
 
     outputs = net(images)
     print('output shape: ', outputs.data.shape)

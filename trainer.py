@@ -81,17 +81,18 @@ class Trainer(object):
         print("[*] Save fixed input image!")
 
         fixed_imgs = fixed_imgs.view(fixed_imgs.size(0), -1)
-
         for epoch in range(self.num_epochs):
             for i, (imgs, _) in enumerate(self.train_loader):
                 self.net.train()
-
+				
+                print("imgs: ",imgs.shape)
                 imgs = imgs.view(imgs.size(0), -1)
                 imgs = imgs.to(self.device)
-
+                print("imgs after view: ", imgs.shape)
                 # forwarding
                 if self.config.encoder == 'AE':
                     outputs = self.net(imgs)
+                    print("outputs: ", type(outputs), outputs.shape)
                     bce_loss = bce_criterion(outputs, imgs)
                     mse_loss = mse_criterion(outputs, imgs)
 
