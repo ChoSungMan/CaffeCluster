@@ -7,3 +7,11 @@
 *.png
 *.gif
 
+# python compiled files
+*.pyc
+
+# 
+data/
+
+# pytorch models
+*.pth
