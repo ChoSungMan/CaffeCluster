@@ -15,3 +15,8 @@ data/
 
 # pytorch models
 *.pth
+
+# 
+*.tar.gz
+*.tar
+*.zip
