@@ -3,7 +3,8 @@
 
 # Image File
 *.jpg
-*.JPEG
+*.jpeg
+*.JPG
 *.png
 *.gif
 
