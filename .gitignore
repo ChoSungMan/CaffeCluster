@@ -13,6 +13,7 @@
 
 # 
 data/
+.vscode/
 
 # pytorch models
 *.pth
