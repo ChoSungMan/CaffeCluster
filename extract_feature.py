@@ -1,61 +1,59 @@
 import torch
 import torch.nn as nn
-import torchvision.models as models
-import torchvision.transforms as transforms
+import torchvision.transforms as T
 from torch.autograd import Variable
 
 import os
 
 from PIL import Image
+from mobilenetv2 import MobileNetV2
+from sklearn.decomposition import PCA
+
+import numpy as np
 
 def get_vector(image_name):
-	
-	img = Image.open(image_name)
-	img.show()
+    weight_path = 'weight/mobilenet_v2.pth.tar'
 
-	model = models.resnet18(pretrained=True)
-	layer = model._modules.get('avgpool')
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-	model.eval()
+    image = Image.open(image_name)
 
-	#scaler = transforms.Scale((224,224))
-	scaler = transforms.Resize((224,224))
+    model = MobileNetV2()
+    model.load_state_dict(torch.load(weight_path, map_location=lambda storage, loc: storage))
+    
+    print(model)
 
-	normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-	to_tensor = transforms.ToTensor()
-	
-	scaled_img = scaler(img)
-	tensor_img = to_tensor(scaled_img)
-	norm_img = normalize(tensor_img)
-	
+    feature_net = model.features.to(device)
+    
+    feature_net_5 = feature_net[:-14]
+    feature_net_10 = feature_net[:-9]
+    feature_net_15 = feature_net[:-4]
+    
+    model.eval()
 
-	t_img = Variable(norm_img.unsqueeze(0))
-	
-	print(t_img.shape)
+    transforms = T.Compose([
+        T.Resize((224,224)),
+        T.ToTensor(),
+        T.Normalize(mean=[0.5, 0.5, 0.5], std=[0.229, 0.224, 0.225])
+        ])
+    
+    image_tensor = transforms(image).unsqueeze(0)
+    
+    image_tensor = image_tensor.to(device)
+    
+    output_5 = feature_net_5(image_tensor)
+    output_5 = output_5.view(output_5.size(0), 32*28*28)
+    output_5 = nn.Linear(32*28*28, 1024)(output_5)
 
-	embeddings = torch.zeros(512)
-	
-	def copy_data(m, i, o):
-		embeddings.copy_(o.data)
+    output_10 = feature_net_10(image_tensor)
+    output_10 = output_10.view(output_10.size(0), 64*14*14)
+    output_10 = nn.Linear(64*14*14, 1024)(output_10)
 
-	h = layer.register_forward_hook(copy_data)
+    output_15 = feature_net_15(image_tensor)
+    output_15 = output_15.view(output_15.size(0), 160*7*7)
+    output_15 = nn.Linear(160*7*7, 1024)(output_15)
 
-	model(t_img)
+    output = (output_5 + output_10 + output_15) / 3 
+    print(output.shape)
 
-	h.remove()
-
-	return embeddings
-
-
-pic1 = str(input("Input first image name\n"))
-pic2 = str(input("Input second image name\n"))
-
-pic1 = os.path.expanduser(pic1)
-pic2 = os.path.expanduser(pic2)
-
-pic1_vec = get_vector(pic1)
-pic2_vec = get_vector(pic2)
-
-print(pic1_vec)
-print(pic2_vec)
-
+get_vector('test.jpg')
